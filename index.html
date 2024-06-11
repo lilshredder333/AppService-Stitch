@@ -1,0 +1,96 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    
+    <meta charset="utf-8" />
+    <title>
+        Riders
+    </title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <link rel="stylesheet" href="styles.css"/>
+    <script src="https://s3.amazonaws.com/stitch-sdks/js/bundles/4.6.0/stitch.js"></script>
+    <script>
+        // Get query string parameters value
+        function getParameterByName(name, url) {
+            if (!url) url = window.location.href;
+            name = name.replace(/[\[\]]/g, '\\$&');
+            var regex = new RegExp('[?&]' + name + '(=([^&#]*)|&|#|$)'),
+                results = regex.exec(url);
+            if (!results) return null;
+            if (!results[2]) return '';
+            return decodeURIComponent(results[2].replace(/\+/g, ' '));
+        }
+        // Azure storage account
+        var account = "stasix0020";
+        var fileShare = "images";
+        var sas = "?sv=2022-11-02&ss=bfqt&srt=sco&sp=rwdlacupiytfx&se=2025-06-07T21:33:54Z&st=2024-06-07T13:33:54Z&spr=https,http&sig=iazaF8Mc2cJ7RRycnfBmxQnq5zY2dvWZumRRuzQbyOg%3D";
+        // Initialize the App Client
+        const client = stitch.Stitch.initializeDefaultAppClient("motos-nuri-rlmknzb");
+        // Get a MongoDB Service Client
+        const mongodb = client.getServiceClient(
+            stitch.RemoteMongoClient.factory,
+            "mongodb-atlas"
+        );
+        // Get a reference to the music database
+        const db = mongodb.db("Motos");
+        // Function display rider
+        function displayRider() {
+            db.collection("Motos-Nuri")
+                .find()
+                .toArray()
+                .then(docs => {
+                    var html = "";
+                    for (j = 0; j < docs.length; j++) {
+                        //var result = "<div><h1>" + docs[j].rider + " - " + docs[j].moto_brand + " - <a href='/album-by-id.html?id=" + docs[j]._id + "'>View details</a></h1></div>";
+                        //result = result + '<img width="200px" src="https://' + account + '.file.core.windows.net/' + fileShare + '/' + docs[j].images[0].name + sas + '&xyz=' + new Date().getTime().toString() + '" />'
+                        //html = html + result;
+                        var rider_img_src = 'https://' + account + '.file.core.windows.net/' + fileShare + '/' + docs[j].images[0].name + sas + '&xyz=' + new Date().getTime().toString() + '';
+                        var result = `
+                        <div class="flip">
+                                <div class="front" style="background-image: url('${rider_img_src}');">
+                                <h1 class="text-shadow">${docs[j].rider}</hi>
+                                </div>
+                                <div class="back">
+                                <h2>${docs[j].moto_brand}</h2>
+                                <h3>${docs[j].moto_model}</h3>
+                                <p>${docs[j].moto_year}</p>
+                                <a href='/rider-by-id.html?id=${docs[j]._id}'>View details</a>
+                                <a href='#' onclick='deleteAlbum("${docs[j]._id}");'>Delete album</a>
+                                </div>
+                            </div>
+                        `
+                        html = html + result;
+                    }
+                    document.getElementById("rider").innerHTML = html;
+                });
+        }
+        // Function execute on load
+        function displayRiderOnLoad() {
+            client.auth
+                .loginWithCredential(new stitch.AnonymousCredential())
+                .then(displayRider)
+                .catch(console.error);
+        }
+    </script>
+</head>
+<body onload="displayRiderOnLoad()">
+    <nav>
+        <div class="logo">
+            <img src="logo.png" alt="Logo Image">
+        </div>
+        <div class="hamburger">
+            <div class="line1"></div>
+            <div class="line2"></div>
+            <div class="line3"></div>
+        </div>
+        <ul class="nav-links">
+            <li><a href="https://awasix020.azurewebsites.net/">Home</a></li>
+            <li><a href="https://awasix020.azurewebsites.net/backend-master-pro-multi-image.html"><button class="join-button">Admin</button></a></li>
+        </ul>
+    </nav>
+    
+    <div id="rider"></div>
+    <script src="nav.js"></script>
+</body>
+</html>

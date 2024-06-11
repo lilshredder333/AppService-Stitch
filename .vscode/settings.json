@@ -1,0 +1,5 @@
+{
+    "liveServer.settings.port": 5501,
+    "appService.defaultWebAppToDeploy": "/subscriptions/f14f614d-d7a5-46ca-bf67-b3a42a57e7ec/resourceGroups/rgasixNogales/providers/Microsoft.Web/sites/awasix020",
+    "appService.deploySubpath": "."
+}

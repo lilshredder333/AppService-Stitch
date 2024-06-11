@@ -1,0 +1,59 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <title>
+        Albums
+    </title>
+    <script src="https://s3.amazonaws.com/stitch-sdks/js/bundles/4.6.0/stitch.js"></script>
+    <script>
+        // Get query string parameters value
+        function getParameterByName(name, url) {
+            if (!url) url = window.location.href;
+            name = name.replace(/[\[\]]/g, '\\$&');
+            var regex = new RegExp('[?&]' + name + '(=([^&#]*)|&|#|$)'),
+                results = regex.exec(url);
+            if (!results) return null;
+            if (!results[2]) return '';
+            return decodeURIComponent(results[2].replace(/\+/g, ' '));
+        }
+        // Azure storage account
+        var account = "stasix0020";
+        var fileShare = "images";
+        var sas = "?sv=2022-11-02&ss=bfqt&srt=sco&sp=rwdlacupiytfx&se=2025-06-07T21:33:54Z&st=2024-06-07T13:33:54Z&spr=https,http&sig=iazaF8Mc2cJ7RRycnfBmxQnq5zY2dvWZumRRuzQbyOg%3D";
+        // Initialize the App Client
+        const client = stitch.Stitch.initializeDefaultAppClient("motos-nuri-rlmknzb");
+        // Get a MongoDB Service Client
+        const mongodb = client.getServiceClient(
+            stitch.RemoteMongoClient.factory,
+            "mongodb-atlas"
+        );
+        // Get a reference to the music database
+        const db = mongodb.db("Motos");
+        // Function display album
+        function displayalbum() {
+            var id = getParameterByName('id');
+            db.collection("Motos-Nuri")
+                .find({"_id": new stitch.BSON.ObjectId(id) })
+                .toArray()
+                .then(docs => {
+                    var result = "<div><h1>" + docs[0].moto_model + " <br/> " + docs[0].moto_brand + "<br/>Official: " + docs[0].team_priority.official + "<br/>Satellite: " + docs[0].team_priority.satellite + "</h1></div>"; 
+                    for (i = 0; i < docs[0].images.length; i++) {
+                        result = result + '<img width="200px" src="https://' + account + '.file.core.windows.net/' + fileShare + '/' + docs[0].images[i].name + sas + '&xyz=' + new Date().getTime().toString() + '" />'
+                    }
+                    document.getElementById("album").innerHTML = result;
+                });
+        }
+        // Function execute on load
+        function displayAlbumOnLoad() {
+            client.auth
+                .loginWithCredential(new stitch.AnonymousCredential())
+                .then(displayalbum)
+                .catch(console.error);
+        }
+    </script>
+</head>
+<body onload="displayAlbumOnLoad()">
+    <div id="album"></div>
+</body>
+</html>
